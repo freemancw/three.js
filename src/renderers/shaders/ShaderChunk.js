@@ -1687,6 +1687,10 @@ THREE.ShaderChunk = {
 			"#endif",
 
 			"gl_FragColor.xyz = gl_FragColor.xyz * shadowColor;",
+			
+			"if (gl_FragColor.w == 0.0) {",
+				"gl_FragColor.xyzw = vec4(0, 0, 0, 1.0-shadowColor.x);",
+			"}",
 
 		"#endif"
 
