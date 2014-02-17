@@ -9,6 +9,67 @@
 		<link href="css/types.css" rel="stylesheet" />
 		<link id="theme" href="css/light.css" rel="stylesheet" />
 
+
+		
+
+
+
+
+
+
+
+
+
+<div id="pano" ></div>
+
+        
+        <div id="options" class="hide" >
+
+            <div id="map"></div>
+
+            <div class="block">
+                <form id="map_form">
+                    <input type="text" name="address" id="address" />
+                    <button type="submit" class="primary button" id="searchButton" >Search</button>
+                </form>
+            </div>
+            
+            <div class="block">
+                <button type="submit" id="myLocationButton" style="width: 148px" class="button">Use my location</button>
+                <button type="submit" id="fullscreenButton" style="width: 148px" class="button">Go fullscreen</button>
+            </div>
+            
+            <div class="block">
+                <b>Quality</b>
+                <form id="pano_form" style="position: absolute; right: 0; top: 0">
+                    <button name="scale" style="width: 4em" id="scale1" class="left button">Low</button>
+                    <button name="scale" style="width: 6em" id="scale2" class="middle button">Medium</button>
+                    <button name="scale" style="width: 4em" id="scale3" class="middle button">High</button>
+                    <button name="scale" style="width: 7em" id="scale4" class="right button">Massive</button>
+                </form>
+            </div>
+            
+            <div class="block" id="status" >
+                <div id="message" ></div>
+                <div id="error" ></div>
+            </div>
+            
+        </div>
+        
+        <div id="preloader" >
+            <div id="bar" ></div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
 		<script src="../build/three.min.js"></script>
 		<script src="../examples/js/libs/system.min.js"></script>
 
@@ -73,6 +134,14 @@
 		<script src="js/Toolbar.js"></script>
 		<script src="js/Viewport.js"></script>
 
+
+		<!--Panorama Stuff-->
+		<script type="text/javascript" src="../../streetview-studio/js/RequestAnimationFrame.js"></script>
+        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
+        <script type="text/javascript" src="../../streetview-studio/js/GSVPano.min.js"></script>
+        <script type="text/javascript" src="../../streetview-studio/js/Tween.js"></script>
+
+
 		<script>
 
 			window.URL = window.URL || window.webkitURL;
@@ -86,6 +155,8 @@
 			var toolbar = new Toolbar( editor ).setId( 'toolbar' )
 			document.body.appendChild( toolbar.dom );
 
+			//toolbar.reset();
+
 			var menubar = new Menubar( editor ).setId( 'menubar' );
 			document.body.appendChild( menubar.dom );
 
@@ -94,9 +165,10 @@
 
 			//
 
-			editor.setTheme( editor.config.getKey( 'theme' ) );
+			//editor.setTheme( editor.config.getKey( 'theme' ) );
 
-			editor.storage.init( function () {
+			/*editor.storage.init( function () {
+
 
 				editor.storage.get( function ( state ) {
 
@@ -118,6 +190,9 @@
 					}
 
 				} );
+
+
+
 
 				//
 
@@ -145,7 +220,7 @@
 				signals.sceneGraphChanged.add( saveState );
 
 			} );
-
+*/
 			//
 
 			document.addEventListener( 'dragover', function ( event ) {
@@ -187,6 +262,583 @@
 			window.addEventListener( 'resize', onWindowResize, false );
 
 			onWindowResize();
+
+
+
+			mloader = new THREE.JSONLoader();
+			var ground = new THREE.Mesh(
+			                    new THREE.CubeGeometry(1024, 1, 1024), 
+			                    new THREE.MeshLambertMaterial({
+			                        color: 'blue', 
+			                        transparent: true, 
+			                        opacity: 0.5
+			            }));
+			            ground.overdraw = true;
+			            ground.receiveShadow = true;
+			            ground.position.set(0, -9, 0);
+			            ground.name = "ground";
+			            
+			editor.addObject(ground);
+			createTreeAtPos(25,0,20);
+/*
+			var mesh = new THREE.Mesh( new THREE.SphereGeometry( 500, 60, 40 ), new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( './../../streetview-studio/search.png' ) } ) );
+			mesh.doubleSided = true;
+			mesh.material.side = THREE.DoubleSide;
+			mesh.name = "panorama";
+			//scene.add( mesh );
+			editor.addObject(mesh);
+
+
+
+
+
+			var  scene = new THREE.Scene();
+//scene = editor.setScene();
+
+
+			var cube = new THREE.Mesh(
+                    new THREE.CubeGeometry(100, 100, 100), 
+                    new THREE.MeshLambertMaterial({
+                        color: 'blue', 
+                        transparent: false
+            }));
+            cube.overdraw = true;
+            cube.receiveShadow = true;
+            cube.position.set(0, -9, 0);
+            cube.name = "cube";
+            cube.position.set(200,0,0);
+            scene.add(cube);
+            editor.addObject(cube);
+
+*/
+
+		function createTreeAtPos(x,y,z){
+
+            var callback = function(geometry, materials){
+                var default_mat = new THREE.MeshLambertMaterial({color: 0x223311 });
+                
+                var mesh = new THREE.Mesh(geometry, default_mat);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                var obj3d = new THREE.Object3D();
+                obj3d.add(mesh);
+                var scale = 16;
+                obj3d.scale.set(scale, scale, scale);
+                obj3d.position.set(x,y,z);
+                obj3d.castShadow = true;
+                obj3d.receiveShadow = true;
+                mesh.name = "Model";
+                editor.addObject(obj3d);
+                //selectModel(mesh);
+
+            }
+
+            mloader.load("../../streetview-studio/models/tree.js",callback);
+        }
+
+
+
+
+
+
+
+
+
+
+
+	TWEEN.start();
+        
+        var map, canvas, ctx;
+        var marker = null;
+        var container, mesh, renderer, camera, composer;
+        var fov = 70;
+        var lat = 0, lon = 0;
+        var zoom;
+        var geocoder;
+        var error;
+        var message;
+        var activeLocation = null;
+        var preloader = document.getElementById( 'preloader' );
+        var bar = document.getElementById( 'bar' );
+        var scaleButtons = [];
+        var cd = new Date();
+        var time = cd.getTime();
+        var position = { x: 0, y: 0 };
+        var loader = new GSVPANO.PanoLoader();
+        var mloader = new THREE.JSONLoader();
+
+
+        //Ray Tracing
+        var clickMarker; // an object in the scene showing where you clicked
+        var selectedModel; //an interactive model in the scene
+        var recentlyFirstHit; //the COLLISION object of the most recent ray trace performed
+        var mouseIsDown; // boolean to determine if the mouse is down
+        var mouseDragged; //boolean to determine if the mouse is being dragged
+        var mouseDraggedCounter; //integer to count up to the buffer
+        var mouseDraggedBufferAmt = 2; //amount the mouse needs to move in order to be considered dragging
+        //var selectionOffset = {x:0, y:0, z:0};
+        //moving
+        
+
+
+
+
+
+
+
+
+
+
+        
+        function setProgress( progress ) {
+            bar.style.width = ( preloader.clientWidth - 6 ) * progress / 100 + 'px';
+        }
+        
+        function showProgress( show ) {
+            preloader.style.opacity = ( show == true )?1:0;
+            preloader.style.display = ( show == true )?'block':'none';
+        }
+        
+        function setZoom( z ) {
+            zoom = z;
+            loader.setZoom( z );
+            for( var j = 0; j < scaleButtons.length; j++ ) {
+                scaleButtons[ j ].className = scaleButtons[ j ].className.replace( 'active', '' );
+                if( z == ( j + 1 ) ) scaleButtons[ j ].className += ' active';
+            }
+            if( activeLocation ) loader.load( activeLocation );
+        }
+        
+        function geoSuccess( position ) {
+        
+            var currentLocation = new google.maps.LatLng( position.coords.latitude, position.coords.longitude );
+            map.panTo( currentLocation );
+            addMarker( currentLocation ); // move to position (thanks @theCole!)
+
+        }
+        
+        function geoError( message ) {
+
+            showError( message );
+        }
+
+
+
+
+
+		function findAddress( address ) {
+        
+            showMessage( 'Getting coordinates...' );
+            geocoder.geocode( { 'address': address}, function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    map.setCenter(results[0].geometry.location);
+                    showMessage( 'Address found.' );
+                    addMarker( results[0].geometry.location ); // move to position (thanks @jocabola!)
+                } else {
+                    showError("Geocode was not successful for the following reason: " + status);
+                    showProgress( false );
+                }
+            });
+        }
+        
+        function showError( message ) {
+            errorDiv.innerHTML = message;
+        }
+        
+        function showMessage( message ) {
+            showError('');
+            messageDiv.innerHTML = message;
+        }
+        
+        function onWindowResized(event) {
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.projectionMatrix = camera.projectionMatrix.makePerspective( 
+            		fov, 
+            		container.clientWidth/container.clientHeight, 
+            		1, 
+            		1100
+            );
+        }
+        
+        var isUserInteracting = false;
+        var onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
+
+		function onContainerMouseDown( event ) {
+            
+            event.preventDefault();
+
+            isUserInteracting = true;
+            var el = document.querySelectorAll( '.hide' );
+            for( var j = 0; j < el.length; j++ ) {
+                el[ j ].style.opacity = 0;
+                el[ j ].style.pointerEvents = 'none';
+            }
+            
+            onPointerDownPointerX = event.clientX;
+            onPointerDownPointerY = event.clientY;
+
+            onPointerDownLon = lon;
+            onPointerDownLat = lat;
+            
+        }
+        
+        function onContainerMouseMove( event ) {
+
+            event.preventDefault();
+            
+            lookSpeed = .15;
+            var f = fov / 500;
+            if( navigator.pointer && navigator.pointer.isLocked ) {
+                position.x -= event.webkitMovementX * f;
+                position.y += event.webkitMovementY * f;
+            } else if ( document.mozPointerLockElement == container ){
+                if( Math.abs( event.mozMovementX ) < 100 || Math.abs( event.mozMovementY ) < 100 ) { 
+                    position.x += event.mozMovementX * f;
+                    position.y -= event.mozMovementY * f;
+                }
+            } else {
+                if ( isUserInteracting ) {
+                    var dx = ( onPointerDownPointerX - event.clientX ) * f;
+                    var dy = ( event.clientY - onPointerDownPointerY ) * f;
+                    position.x = dx + onPointerDownLon; // reversed dragging direction (thanks @mrdoob!)
+                    position.y = dy + onPointerDownLat;
+                }
+            }
+        }
+        
+        function onContainerMouseWheel( event ) {
+            
+            event = event ? event : window.event;
+            var nfov = fov - ( event.detail ? event.detail * -5 : event.wheelDelta / 8 );
+            
+            var tween = new TWEEN
+                .Tween( window )
+                .to( { fov: nfov }, 200 )
+                .easing(TWEEN.Easing.Cubic.EaseInOut)
+                .onUpdate( function() { 
+                    //camera.projectionMatrix = THREE.Matrix4.makePerspective( fov, container.clientWidth / container.clientHeight, 1, 1100 );
+                	camera.projectionMatrix = camera.projectionMatrix.makePerspective( fov, container.clientWidth / container.clientHeight, 1, 1100 );
+                } )
+                .start();
+
+        }
+
+        function update() {
+        }
+        
+        function onContainerMouseUp( event ) {
+
+            event.preventDefault();
+            isUserInteracting = false;
+            var el = document.querySelectorAll( '.hide' );
+            for( var j = 0; j < el.length; j++ ) {
+                el[ j ].style.opacity = 1;
+                el[ j ].style.pointerEvents = 'auto';
+            }
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function initialize() {
+
+        	/*
+			editor.config.clear();
+			//editor.storage.clear();
+			editor.storage.clear( function () {
+					location.href = location.pathname;
+			} );*/
+
+
+
+			var locations = [
+				{ lat: 51.50700703827454, lng: -0.12791916931155356 },
+				{ lat: 32.6144404, lng: -108.9852017 },
+				{ lat: 39.36382677360614, lng: 8.431220278759724 },
+				{ lat: 59.30571937680209, lng: 4.879402148657164 },
+				{ lat: 28.240385123352873, lng: -16.629988706884774 },
+				{ lat: 50.09072314148827, lng: 14.393133454556278 },
+				{ lat: 41.413416092316275, lng: 2.1531126527786455 },
+				{ lat: 35.69143938066447, lng: 139.695139627539 },
+				{ lat: 35.67120372775569, lng: 139.77167914398797 },
+				{ lat: 54.552083679428065, lng: -3.297380963134742 }
+			];
+			
+			var pos;
+			if( window.location.hash ) {
+				parts = window.location.hash.substr( 1 ).split( ',' );
+				pos = { lat: parts[ 0 ], lng: parts[ 1 ] };
+			} else {
+				pos = locations[ Math.floor( Math.random() * locations.length ) ];
+			}
+			var myLatlng = new google.maps.LatLng( pos.lat, pos.lng );
+				
+			var links = document.querySelectorAll( 'a[rel=external]' );
+			for( var j = 0; j < links.length; j++ ) {
+				var a = links[ j ];
+				a.addEventListener( 'click', function( e ) {
+					window.open( this.href, '_blank' );
+					e.preventDefault();
+				}, false );
+			}
+			
+			for( var j = 1; j < 5; j++ ) {
+				var el = document.getElementById( 'scale' + j );
+				scaleButtons.push( el );
+				( function( z ) { el.addEventListener( 'click', function( e ) {
+					e.preventDefault();
+					setZoom( z ); 
+				}, false ); } )( j );
+			}
+			
+			canvas = document.createElement( 'canvas' );
+			ctx = canvas.getContext( '2d' );
+			
+			container = document.getElementById( 'pano' );
+			
+			camera = new THREE.PerspectiveCamera( fov, window.innerWidth / window.innerHeight, 1, 1100 );
+			camera.target = new THREE.Vector3( 0, 0, 0 );
+			
+			scene = new THREE.Scene();
+			scene.add( camera );
+
+			try {
+				var isWebGL = !!window.WebGLRenderingContext && !!document.createElement('canvas').getContext('experimental-webgl');
+			}catch(e){
+				
+			}
+			
+			renderer = new THREE.WebGLRenderer();
+			renderer.autoClearColor = false;
+			renderer.setSize( window.innerWidth, window.innerHeight );
+
+			var faces = 50;
+			mesh = new THREE.Mesh( new THREE.SphereGeometry( 500, 60, 40 ), new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( './../../streetview-studio/search.png' ) } ) );
+			mesh.doubleSided = true;
+			scene.add( mesh );
+			editor.addObject(mesh);
+			
+			container.appendChild( renderer.domElement );
+			
+			var myOptions = {
+				zoom: 14,
+				center: myLatlng,
+				mapTypeId: google.maps.MapTypeId.ROADMAP,
+				streetViewControl: false
+			}
+
+			map = new google.maps.Map(document.getElementById("map"), myOptions);
+			google.maps.event.addListener(map, 'click', function(event) {
+				addMarker(event.latLng);
+			});
+			
+			geocoder = new google.maps.Geocoder();
+			
+			container.addEventListener( 'mousedown', onContainerMouseDown, false );
+			container.addEventListener( 'mousemove', onContainerMouseMove, false );
+			container.addEventListener( 'mouseup', onContainerMouseUp, false );
+			container.addEventListener( 'mousewheel', onContainerMouseWheel, false );
+			container.addEventListener( 'DOMMouseScroll', onContainerMouseWheel, false); 
+			window.addEventListener( 'resize', onWindowResized, false );
+			
+			onWindowResized( null );
+			
+			var el = document.getElementById( 'myLocationButton' );
+			el.addEventListener( 'click', function( event ) {
+				event.preventDefault();
+				navigator.geolocation.getCurrentPosition( geoSuccess, geoError );
+			}, false );
+			
+			navigator.pointer = navigator.pointer || navigator.webkitPointer || navigator.mozPointer;  
+
+			var el = document.getElementById( 'fullscreenButton' );
+			if( el ) {
+				el.addEventListener( 'click', function( e ) {
+					container.addEventListener( 'webkitfullscreenchange', function(e) {
+						if( navigator.pointer ) {
+							navigator.pointer.lock( container );
+						}
+					}, false );
+					document.addEventListener( 'mozfullscreenchange', function(e) {
+						if (document.mozFullScreen && document.mozFullScreenElement === container && container.mozRequestPointerLock) {
+							container.mozRequestPointerLock();
+						}
+					}, false );
+					if( container.webkitRequestFullScreen ) container.webkitRequestFullScreen();
+					if( container.mozRequestFullScreen ) container.mozRequestFullScreen();
+					e.preventDefault();
+				}, false );
+			}
+			
+			el = document.getElementById( 'searchButton' );
+			el.addEventListener( 'click', function( event ) {
+				event.preventDefault();
+				findAddress( document.getElementById("address").value );
+			}, false );
+			
+			errorDiv = document.getElementById( 'error' );
+			messageDiv = document.getElementById( 'message' );
+			
+			showMessage( 'Ready. <b>Click a street in the map.</b>' );
+			
+			loader.onProgress = function( p ) {
+				setProgress( p );
+			};
+			
+			loader.onPanoramaData = function( result ) {
+				showProgress( true );
+				showMessage( 'Panorama OK. Loading and composing tiles...' );
+			}
+			
+			loader.onNoPanoramaData = function( status ) {
+				showError("Could not retrieve panorama for the following reason: " + status);
+			}
+			
+			loader.onPanoramaLoad = function() {
+				activeLocation = this.location;
+				mesh.material.map = new THREE.Texture( this.canvas ); 
+				mesh.name = "panorama";
+				mesh.material.side = THREE.DoubleSide;
+				//editor.addObject(mesh);
+				mesh.material.map.needsUpdate = true;
+				showMessage( 'Panorama tiles loaded.<br/>The images are ' + this.copyright );
+				showProgress( false );
+			};
+
+			setZoom( 3 );
+			addMarker( myLatlng ); // initial position (thanks @mrdoob!)
+			animate();
+		}
+		
+		window.addEventListener( 'load', initialize, false );
+
+
+
+		function addMarker(location) {
+            if( marker ) marker.setMap( null );
+            marker = new google.maps.Marker({
+                position: location,
+                map: map
+            });
+            marker.setMap( map ); 
+            showMessage( 'Loading panorama for zoom ' + zoom + '...' );
+            loader.load( location );
+        }
+        
+        var panoramas = [];
+        var circle = null;
+        var copyright;
+
+        function animate() {
+
+            requestAnimationFrame( animate );
+            render();
+
+        }
+
+
+
+
+
+
+
+
+
+
+        var ellapsedTime;
+        
+        function render() {
+
+            var cd = new Date();
+            ctime = cd.getTime();
+            
+            ellapsedTime = ( ctime - time );
+            ellapsedFactor = ellapsedTime / 16;
+
+            var olon = lon, olat = lat;
+            var s = .15 * ellapsedFactor;
+            lon = lon + ( position.x - olon ) * s;
+            lat = lat + ( position.y - olat ) * s;
+                
+            lat = Math.max( - 85, Math.min( 85, lat ) );
+            phi = ( 90 - lat ) * Math.PI / 180;
+            theta = lon * Math.PI / 180;
+
+            camera.target.x = 500 * Math.sin( phi ) * Math.cos( theta );
+            camera.target.y = 500 * Math.cos( phi );
+            camera.target.z = 500 * Math.sin( phi ) * Math.sin( theta );
+            camera.lookAt( camera.target );
+            
+
+            
+
+
+
+
+
+
+
+            renderer.render( scene, camera );
+            //renderer.render(0.01);
+
+            time = ctime;
+
+
+
+
+
+
+
+
+
+
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 		</script>
 	</body>

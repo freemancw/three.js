@@ -20,16 +20,17 @@ Menubar.File = function ( editor ) {
 	var option = new UI.Panel();
 	option.setClass( 'option' );
 	option.setTextContent( 'New' );
+	function reset(){
+		editor.config.clear();
+		editor.storage.clear( function () {
+				location.href = location.pathname;
+		} );
+	}
 	option.onClick( function () {
 
 		if ( confirm( 'Are you sure?' ) ) {
 
-			editor.config.clear();
-			editor.storage.clear( function () {
-
-				location.href = location.pathname;
-
-			} );
+			reset();
 
 		}
 

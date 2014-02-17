@@ -5,11 +5,11 @@ var Config = function () {
 	var storage = {
 		theme: 'css/light.css',
 		camera: {
-			position: [ 500, 250, 500 ],
-			target: [ 0, 0, 0 ] 
+			position: [ 0, 9, 0 ],
+			target: [ 1, 9, 0] 
 		}
 	};
-
+	/*
 	if ( window.localStorage[ name ] !== undefined ) {
 
 		var data = JSON.parse( window.localStorage[ name ] );
@@ -20,7 +20,7 @@ var Config = function () {
 
 		}
 
-	}
+	}*/
 
 	return {
 
