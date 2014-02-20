@@ -7586,7 +7586,7 @@ THREE.Object3D.prototype = {
 	}(),
 
 	add: function ( object ) {
-
+		
 		if ( object === this ) {
 
 			console.warn( 'THREE.Object3D.add: An object can\'t be added as a child of itself.' );
@@ -10255,11 +10255,12 @@ THREE.PointLight.prototype.clone = function () {
  */
 
 THREE.SpotLight = function ( hex, intensity, distance, angle, exponent ) {
-
+	console.log("spotlight");
 	THREE.Light.call( this, hex );
 
 	this.position.set( 0, 1, 0 );
 	this.target = new THREE.Object3D();
+	this.target.name = "target";
 
 	this.intensity = ( intensity !== undefined ) ? intensity : 1;
 	this.distance = ( distance !== undefined ) ? distance : 0;
@@ -10295,7 +10296,6 @@ THREE.SpotLight = function ( hex, intensity, distance, angle, exponent ) {
 THREE.SpotLight.prototype = Object.create( THREE.Light.prototype );
 
 THREE.SpotLight.prototype.clone = function () {
-
 	var light = new THREE.SpotLight();
 
 	THREE.Light.prototype.clone.call( this, light );
@@ -11902,6 +11902,17 @@ THREE.ObjectLoader.prototype = {
 				case 'SpotLight':
 
 					object = new THREE.SpotLight( data.color, data.intensity, data.distance, data.angle, data.exponent );
+					/*if ( data.children !== undefined ) {
+
+
+						for ( var child in data.children ) {
+							object.target = this.parseObject( data.children[ child ], geometries, materials );
+							
+
+						}
+
+					}*/
+					object.target.position.set(50,50,300);
 
 					break;
 

@@ -42,6 +42,7 @@ var Editor = function () {
 	this.loader = new Loader( this );
 
 	this.scene = new THREE.Scene();
+	this.scene.name = "scene";
 	this.sceneHelpers = new THREE.Scene();
 
 	this.object = {};
@@ -74,7 +75,7 @@ Editor.prototype = {
 		this.signals.sceneGraphChanged.active = false;
 
 		while ( scene.children.length > 0 ) {
-
+			
 			this.addObject( scene.children[ 0 ] );
 
 		}
@@ -290,6 +291,11 @@ Editor.prototype = {
 	//
 
 	select: function ( object ) {
+
+		//steven
+		if(object.name == 'panorama' || object.name == 'ground'){
+			return;
+		}
 
 		this.selected = object;
 

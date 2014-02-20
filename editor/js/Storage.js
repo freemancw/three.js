@@ -46,6 +46,7 @@ var Storage = function () {
 			var request = objectStore.get( 0 );
 			request.onsuccess = function ( event ) {
 
+				console.log( '[' + /\d\d\:\d\d\:\d\d/.exec( new Date() )[ 0 ] + ']', 'Loaded state from IndexedDB.' );
 				callback( event.target.result );
 
 			};

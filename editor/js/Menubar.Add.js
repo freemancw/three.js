@@ -331,6 +331,19 @@ Menubar.Add = function ( editor ) {
 		editor.select( light );
 
 	} );
+
+
+	options.add( option );
+
+		var option = new UI.Panel();
+	option.setClass( 'option' );
+	option.setTextContent( 'Tree' );
+	option.onClick( function () {
+
+		createTreeAtPos(50,0,300);
+
+
+	} );
 	options.add( option );
 
 	//

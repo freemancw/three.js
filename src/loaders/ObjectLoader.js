@@ -38,6 +38,8 @@ THREE.ObjectLoader.prototype = {
 		var materials = this.parseMaterials( json.materials );
 		var object = this.parseObject( json.object, geometries, materials );
 
+		console.log(json);
+
 		return object;
 
 	},
